@@ -37,16 +37,55 @@ export MOOMOO_SECURITY_FIRM="FUTUSG"
 
 ### Claude Desktop
 
-Add to `claude_desktop_config.json`:
+Config file location (macOS):
+```
+~/Library/Application Support/Claude/claude_desktop_config.json
+```
+
+Add the `moomoo` entry under `mcpServers`:
 
 ```json
 {
   "mcpServers": {
     "moomoo": {
-      "command": "/path/to/moomoo-mcp"
+      "command": "/path/to/moomoo-mcp",
+      "env": {
+        "MOOMOO_OPEND_HOST": "127.0.0.1",
+        "MOOMOO_OPEND_PORT": "11111"
+      }
     }
   }
 }
+```
+
+Restart Claude Desktop after saving.
+
+### Claude Code CLI
+
+Use `claude mcp add` to register the server. The `-s` flag controls where the config is stored:
+
+```bash
+# User-level (available in all projects, stored in ~/.claude.json)
+claude mcp add -s user moomoo /path/to/moomoo-mcp
+
+# Project-level (stored in .mcp.json in the project directory, can be shared via git)
+claude mcp add -s project moomoo /path/to/moomoo-mcp
+```
+
+With environment variables (e.g. for REAL mode):
+
+```bash
+claude mcp add -s user moomoo \
+  -e MOOMOO_TRADE_PASSWORD=your-password \
+  -e MOOMOO_SECURITY_FIRM=FUTUSG \
+  -- /path/to/moomoo-mcp
+```
+
+Verify the server is registered and healthy:
+
+```bash
+claude mcp list
+claude mcp get moomoo
 ```
 
 ## License
