@@ -1,0 +1,15 @@
+# Plan documents (not committed)
+GO_PORT_PLAN.md
+IMPLEMENTATION_PLAN.md
+
+# Build output (root binary only)
+/moomoo-mcp
+
+# Platform binaries
+*.exe
+
+# macOS
+.DS_Store
+
+# Go tools
+vendor/
