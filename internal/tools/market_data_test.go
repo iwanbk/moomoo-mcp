@@ -76,6 +76,46 @@ func TestGetMarketSnapshot_success(t *testing.T) {
 	}
 }
 
+func TestGetMarketSnapshot_extendedSessions(t *testing.T) {
+	want := []moomoo.MarketSnapshot{
+		{
+			Code:        "US.AAPL",
+			CurPrice:    200.0,
+			PreMarket:   &moomoo.SessionData{Price: 201.5, ChangeRate: 0.75},
+			AfterMarket: &moomoo.SessionData{Price: 199.0, ChangeRate: -0.50},
+			Overnight:   &moomoo.SessionData{Price: 198.5, ChangeRate: -0.75},
+		},
+	}
+	cs, cleanup := newMarketServer(&marketMockClient{snapshotResult: want})
+	defer cleanup()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name:      "get_market_snapshot",
+		Arguments: map[string]any{"codes": []string{"US.AAPL"}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.IsError {
+		t.Fatalf("unexpected tool error: %v", res.Content)
+	}
+
+	var got []moomoo.MarketSnapshot
+	if err := json.Unmarshal([]byte(res.Content[0].(*mcp.TextContent).Text), &got); err != nil {
+		t.Fatal(err)
+	}
+	g := got[0]
+	if g.PreMarket == nil || g.PreMarket.Price != 201.5 {
+		t.Errorf("unexpected pre_market: %+v", g.PreMarket)
+	}
+	if g.AfterMarket == nil || g.AfterMarket.Price != 199.0 {
+		t.Errorf("unexpected after_market: %+v", g.AfterMarket)
+	}
+	if g.Overnight == nil || g.Overnight.Price != 198.5 {
+		t.Errorf("unexpected overnight: %+v", g.Overnight)
+	}
+}
+
 func TestGetMarketSnapshot_error(t *testing.T) {
 	cs, cleanup := newMarketServer(&marketMockClient{snapshotErr: errors.New("network error")})
 	defer cleanup()

@@ -8,32 +8,67 @@ import (
 	"github.com/hyperjiang/futu/pb/qotcommon"
 )
 
-// MarketSnapshot is a compact snapshot of a security's current market state.
-type MarketSnapshot struct {
-	Code       string  `json:"code"`
-	Name       string  `json:"name,omitempty"`
-	CurPrice   float64 `json:"cur_price"`
-	OpenPrice  float64 `json:"open_price"`
+// SessionData holds price/volume data for a single extended trading session
+// (pre-market, after-market, or overnight).
+type SessionData struct {
+	Price      float64 `json:"price"`
 	HighPrice  float64 `json:"high_price"`
 	LowPrice   float64 `json:"low_price"`
-	LastClose  float64 `json:"last_close"`
 	Volume     int64   `json:"volume"`
 	Turnover   float64 `json:"turnover"`
-	UpdateTime string  `json:"update_time,omitempty"`
+	ChangeVal  float64 `json:"change_val"`
+	ChangeRate float64 `json:"change_rate"`
+}
+
+// sessionFromProto converts a protobuf PreAfterMarketData to SessionData.
+// Returns nil when the source is nil (session not available).
+func sessionFromProto(p *qotcommon.PreAfterMarketData) *SessionData {
+	if p == nil {
+		return nil
+	}
+	return &SessionData{
+		Price:      p.GetPrice(),
+		HighPrice:  p.GetHighPrice(),
+		LowPrice:   p.GetLowPrice(),
+		Volume:     p.GetVolume(),
+		Turnover:   p.GetTurnover(),
+		ChangeVal:  p.GetChangeVal(),
+		ChangeRate: p.GetChangeRate(),
+	}
+}
+
+// MarketSnapshot is a compact snapshot of a security's current market state.
+type MarketSnapshot struct {
+	Code        string       `json:"code"`
+	Name        string       `json:"name,omitempty"`
+	CurPrice    float64      `json:"cur_price"`
+	OpenPrice   float64      `json:"open_price"`
+	HighPrice   float64      `json:"high_price"`
+	LowPrice    float64      `json:"low_price"`
+	LastClose   float64      `json:"last_close"`
+	Volume      int64        `json:"volume"`
+	Turnover    float64      `json:"turnover"`
+	UpdateTime  string       `json:"update_time,omitempty"`
+	PreMarket   *SessionData `json:"pre_market,omitempty"`
+	AfterMarket *SessionData `json:"after_market,omitempty"`
+	Overnight   *SessionData `json:"overnight,omitempty"`
 }
 
 // Quote holds real-time basic quote data for a security.
 type Quote struct {
-	Code       string  `json:"code"`
-	Name       string  `json:"name,omitempty"`
-	CurPrice   float64 `json:"cur_price"`
-	OpenPrice  float64 `json:"open_price"`
-	HighPrice  float64 `json:"high_price"`
-	LowPrice   float64 `json:"low_price"`
-	LastClose  float64 `json:"last_close"`
-	Volume     int64   `json:"volume"`
-	Turnover   float64 `json:"turnover"`
-	UpdateTime string  `json:"update_time,omitempty"`
+	Code        string       `json:"code"`
+	Name        string       `json:"name,omitempty"`
+	CurPrice    float64      `json:"cur_price"`
+	OpenPrice   float64      `json:"open_price"`
+	HighPrice   float64      `json:"high_price"`
+	LowPrice    float64      `json:"low_price"`
+	LastClose   float64      `json:"last_close"`
+	Volume      int64        `json:"volume"`
+	Turnover    float64      `json:"turnover"`
+	UpdateTime  string       `json:"update_time,omitempty"`
+	PreMarket   *SessionData `json:"pre_market,omitempty"`
+	AfterMarket *SessionData `json:"after_market,omitempty"`
+	Overnight   *SessionData `json:"overnight,omitempty"`
 }
 
 // Kline is a single OHLCV candle.
@@ -75,16 +110,19 @@ func (c *Client) GetSnapshot(ctx context.Context, codes []string) ([]MarketSnaps
 			continue
 		}
 		out = append(out, MarketSnapshot{
-			Code:       adapt.SecurityToCode(b.GetSecurity()),
-			Name:       b.GetName(),
-			CurPrice:   b.GetCurPrice(),
-			OpenPrice:  b.GetOpenPrice(),
-			HighPrice:  b.GetHighPrice(),
-			LowPrice:   b.GetLowPrice(),
-			LastClose:  b.GetLastClosePrice(),
-			Volume:     b.GetVolume(),
-			Turnover:   b.GetTurnover(),
-			UpdateTime: b.GetUpdateTime(),
+			Code:        adapt.SecurityToCode(b.GetSecurity()),
+			Name:        b.GetName(),
+			CurPrice:    b.GetCurPrice(),
+			OpenPrice:   b.GetOpenPrice(),
+			HighPrice:   b.GetHighPrice(),
+			LowPrice:    b.GetLowPrice(),
+			LastClose:   b.GetLastClosePrice(),
+			Volume:      b.GetVolume(),
+			Turnover:    b.GetTurnover(),
+			UpdateTime:  b.GetUpdateTime(),
+			PreMarket:   sessionFromProto(b.GetPreMarket()),
+			AfterMarket: sessionFromProto(b.GetAfterMarket()),
+			Overnight:   sessionFromProto(b.GetOvernight()),
 		})
 	}
 	return out, nil
@@ -103,16 +141,19 @@ func (c *Client) GetQuote(ctx context.Context, codes []string) ([]Quote, error) 
 	out := make([]Quote, 0, len(qots))
 	for _, q := range qots {
 		out = append(out, Quote{
-			Code:       adapt.SecurityToCode(q.GetSecurity()),
-			Name:       q.GetName(),
-			CurPrice:   q.GetCurPrice(),
-			OpenPrice:  q.GetOpenPrice(),
-			HighPrice:  q.GetHighPrice(),
-			LowPrice:   q.GetLowPrice(),
-			LastClose:  q.GetLastClosePrice(),
-			Volume:     q.GetVolume(),
-			Turnover:   q.GetTurnover(),
-			UpdateTime: q.GetUpdateTime(),
+			Code:        adapt.SecurityToCode(q.GetSecurity()),
+			Name:        q.GetName(),
+			CurPrice:    q.GetCurPrice(),
+			OpenPrice:   q.GetOpenPrice(),
+			HighPrice:   q.GetHighPrice(),
+			LowPrice:    q.GetLowPrice(),
+			LastClose:   q.GetLastClosePrice(),
+			Volume:      q.GetVolume(),
+			Turnover:    q.GetTurnover(),
+			UpdateTime:  q.GetUpdateTime(),
+			PreMarket:   sessionFromProto(q.GetPreMarket()),
+			AfterMarket: sessionFromProto(q.GetAfterMarket()),
+			Overnight:   sessionFromProto(q.GetOvernight()),
 		})
 	}
 	return out, nil
