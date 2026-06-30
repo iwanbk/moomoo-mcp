@@ -8,6 +8,8 @@ import (
 	"testing"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+
+	"github.com/iwanbk/moomoo-mcp/internal/moomoo"
 )
 
 type mockClient struct {
@@ -16,6 +18,19 @@ type mockClient struct {
 
 func (m *mockClient) Health(_ context.Context) error { return m.healthErr }
 func (m *mockClient) Close() error                   { return nil }
+
+func (m *mockClient) GetSnapshot(_ context.Context, _ []string) ([]moomoo.MarketSnapshot, error) {
+	return nil, nil
+}
+func (m *mockClient) GetQuote(_ context.Context, _ []string) ([]moomoo.Quote, error) {
+	return nil, nil
+}
+func (m *mockClient) GetKlines(_ context.Context, _ string, _ int32, _, _ string) ([]moomoo.Kline, error) {
+	return nil, nil
+}
+func (m *mockClient) GetOrderBook(_ context.Context, _ string) (*moomoo.OrderBook, error) {
+	return nil, nil
+}
 
 // connect creates an in-memory MCP client session connected to the given server.
 func connectTest(ctx context.Context, s *mcp.Server) (*mcp.ClientSession, func()) {

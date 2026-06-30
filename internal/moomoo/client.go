@@ -13,6 +13,10 @@ import (
 type MoomooClient interface {
 	Health(ctx context.Context) error
 	Close() error
+	GetSnapshot(ctx context.Context, codes []string) ([]MarketSnapshot, error)
+	GetQuote(ctx context.Context, codes []string) ([]Quote, error)
+	GetKlines(ctx context.Context, code string, klType int32, beginTime, endTime string) ([]Kline, error)
+	GetOrderBook(ctx context.Context, code string) (*OrderBook, error)
 }
 
 // Client wraps the hyperjiang/futu SDK.
