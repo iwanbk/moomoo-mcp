@@ -31,6 +31,24 @@ func (m *mockClient) GetKlines(_ context.Context, _ string, _ int32, _, _ string
 func (m *mockClient) GetOrderBook(_ context.Context, _ string) (*moomoo.OrderBook, error) {
 	return nil, nil
 }
+func (m *mockClient) GetAccounts(_ context.Context) ([]moomoo.Account, error) {
+	return nil, nil
+}
+func (m *mockClient) GetAssets(_ context.Context, _ uint64, _, _ string) (*moomoo.Assets, error) {
+	return nil, nil
+}
+func (m *mockClient) GetPositions(_ context.Context, _ uint64, _, _ string) ([]moomoo.Position, error) {
+	return nil, nil
+}
+func (m *mockClient) GetMaxTradable(_ context.Context, _ uint64, _, _, _, _ string, _ float64) (*moomoo.MaxTradable, error) {
+	return nil, nil
+}
+func (m *mockClient) GetMarginRatio(_ context.Context, _ uint64, _, _ string, _ []string) ([]moomoo.MarginRatio, error) {
+	return nil, nil
+}
+func (m *mockClient) GetCashFlow(_ context.Context, _ uint64, _, _, _ string) ([]moomoo.CashFlow, error) {
+	return nil, nil
+}
 
 // connect creates an in-memory MCP client session connected to the given server.
 func connectTest(ctx context.Context, s *mcp.Server) (*mcp.ClientSession, func()) {

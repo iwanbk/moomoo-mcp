@@ -16,7 +16,7 @@ func main() {
 
 	ctx := context.Background()
 
-	client, err := moomoo.New(cfg.OpendHost, cfg.OpendPort)
+	client, err := moomoo.New(cfg.OpendHost, cfg.OpendPort, cfg.SimulateOnly)
 	if err != nil {
 		log.Fatalf("connect to OpenD at %s:%d: %v", cfg.OpendHost, cfg.OpendPort, err)
 	}
@@ -29,6 +29,7 @@ func main() {
 
 	tools.RegisterSystem(server, client)
 	tools.RegisterMarketData(server, client)
+	tools.RegisterAccount(server, client)
 
 	if err := server.Run(ctx, &mcp.StdioTransport{}); err != nil {
 		log.Fatalf("server: %v", err)

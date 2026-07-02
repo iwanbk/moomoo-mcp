@@ -17,22 +17,34 @@ type MoomooClient interface {
 	GetQuote(ctx context.Context, codes []string) ([]Quote, error)
 	GetKlines(ctx context.Context, code string, klType int32, beginTime, endTime string) ([]Kline, error)
 	GetOrderBook(ctx context.Context, code string) (*OrderBook, error)
+	GetAccounts(ctx context.Context) ([]Account, error)
+	GetAssets(ctx context.Context, accountID uint64, trdEnv, trdMarket string) (*Assets, error)
+	GetPositions(ctx context.Context, accountID uint64, trdEnv, trdMarket string) ([]Position, error)
+	GetMaxTradable(ctx context.Context, accountID uint64, trdEnv, trdMarket, orderType, code string, price float64) (*MaxTradable, error)
+	GetMarginRatio(ctx context.Context, accountID uint64, trdEnv, trdMarket string, codes []string) ([]MarginRatio, error)
+	GetCashFlow(ctx context.Context, accountID uint64, trdEnv, trdMarket, clearingDate string) ([]CashFlow, error)
 }
 
 // Client wraps the hyperjiang/futu SDK.
 type Client struct {
 	sdk *futu.SDK
+	// simulateOnly blocks building a REAL trade header when no trade
+	// password was configured, so read-only account tools can't be pointed
+	// at a real account by mistake.
+	simulateOnly bool
 }
 
-// New connects to OpenD and returns a Client ready for use.
-func New(host string, port int) (*Client, error) {
+// New connects to OpenD and returns a Client ready for use. simulateOnly
+// should be true when no trade password is configured; it prevents any
+// account tool from querying a REAL trading account.
+func New(host string, port int, simulateOnly bool) (*Client, error) {
 	sdk, err := futu.NewSDK(
 		client.WithAddr(fmt.Sprintf("%s:%d", host, port)),
 	)
 	if err != nil {
 		return nil, err
 	}
-	return &Client{sdk: sdk}, nil
+	return &Client{sdk: sdk, simulateOnly: simulateOnly}, nil
 }
 
 // Close shuts down the OpenD connection.
