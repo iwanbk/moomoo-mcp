@@ -23,8 +23,8 @@ type marketMockClient struct {
 	orderBookErr    error
 }
 
-func (m *marketMockClient) Health(_ context.Context) error  { return nil }
-func (m *marketMockClient) Close() error                    { return nil }
+func (m *marketMockClient) Health(_ context.Context) error { return nil }
+func (m *marketMockClient) Close() error                   { return nil }
 func (m *marketMockClient) GetSnapshot(_ context.Context, _ []string) ([]moomoo.MarketSnapshot, error) {
 	return m.snapshotResult, m.snapshotErr
 }
@@ -36,6 +36,24 @@ func (m *marketMockClient) GetKlines(_ context.Context, _ string, _ int32, _, _ 
 }
 func (m *marketMockClient) GetOrderBook(_ context.Context, _ string) (*moomoo.OrderBook, error) {
 	return m.orderBookResult, m.orderBookErr
+}
+func (m *marketMockClient) GetAccounts(_ context.Context) ([]moomoo.Account, error) {
+	return nil, nil
+}
+func (m *marketMockClient) GetAssets(_ context.Context, _ uint64, _, _ string) (*moomoo.Assets, error) {
+	return nil, nil
+}
+func (m *marketMockClient) GetPositions(_ context.Context, _ uint64, _, _ string) ([]moomoo.Position, error) {
+	return nil, nil
+}
+func (m *marketMockClient) GetMaxTradable(_ context.Context, _ uint64, _, _, _, _ string, _ float64) (*moomoo.MaxTradable, error) {
+	return nil, nil
+}
+func (m *marketMockClient) GetMarginRatio(_ context.Context, _ uint64, _, _ string, _ []string) ([]moomoo.MarginRatio, error) {
+	return nil, nil
+}
+func (m *marketMockClient) GetCashFlow(_ context.Context, _ uint64, _, _, _ string) ([]moomoo.CashFlow, error) {
+	return nil, nil
 }
 
 func newMarketServer(c moomoo.MoomooClient) (*mcp.ClientSession, func()) {
