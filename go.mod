@@ -5,6 +5,7 @@ go 1.25.8
 require (
 	github.com/hyperjiang/futu v1.7.0
 	github.com/modelcontextprotocol/go-sdk v1.6.1
+	google.golang.org/protobuf v1.35.1
 )
 
 require (
@@ -18,5 +19,4 @@ require (
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	golang.org/x/oauth2 v0.35.0 // indirect
 	golang.org/x/sys v0.41.0 // indirect
-	google.golang.org/protobuf v1.35.1 // indirect
 )

@@ -55,6 +55,18 @@ func (m *mockClient) GetUserSecurityGroup(_ context.Context, _ string) ([]moomoo
 func (m *mockClient) GetUserSecurity(_ context.Context, _ string) ([]moomoo.WatchlistSecurity, error) {
 	return nil, nil
 }
+func (m *mockClient) GetOrders(_ context.Context, _ uint64, _, _ string) ([]moomoo.Order, error) {
+	return nil, nil
+}
+func (m *mockClient) GetDeals(_ context.Context, _ uint64, _, _ string) ([]moomoo.Deal, error) {
+	return nil, nil
+}
+func (m *mockClient) GetHistoryOrders(_ context.Context, _ uint64, _, _, _, _ string, _ []string) ([]moomoo.Order, error) {
+	return nil, nil
+}
+func (m *mockClient) GetHistoryDeals(_ context.Context, _ uint64, _, _, _, _ string, _ []string) ([]moomoo.Deal, error) {
+	return nil, nil
+}
 
 // connect creates an in-memory MCP client session connected to the given server.
 func connectTest(ctx context.Context, s *mcp.Server) (*mcp.ClientSession, func()) {

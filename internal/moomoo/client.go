@@ -25,6 +25,10 @@ type MoomooClient interface {
 	GetCashFlow(ctx context.Context, accountID uint64, trdEnv, trdMarket, clearingDate string) ([]CashFlow, error)
 	GetUserSecurityGroup(ctx context.Context, groupType string) ([]SecurityGroup, error)
 	GetUserSecurity(ctx context.Context, groupName string) ([]WatchlistSecurity, error)
+	GetOrders(ctx context.Context, accountID uint64, trdEnv, trdMarket string) ([]Order, error)
+	GetDeals(ctx context.Context, accountID uint64, trdEnv, trdMarket string) ([]Deal, error)
+	GetHistoryOrders(ctx context.Context, accountID uint64, trdEnv, trdMarket, beginTime, endTime string, codes []string) ([]Order, error)
+	GetHistoryDeals(ctx context.Context, accountID uint64, trdEnv, trdMarket, beginTime, endTime string, codes []string) ([]Deal, error)
 }
 
 // Client wraps the hyperjiang/futu SDK.

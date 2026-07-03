@@ -22,10 +22,10 @@ Provides read-only trading tools (system health, market data, account info) via 
 | ✅   | Account     | `get_cash_flow`          | Trading cash flow summary for an account on a given date.           |
 | ✅   | Watchlist   | `get_user_security_group`| List the user's watchlist groups.                                   |
 | ✅   | Watchlist   | `get_user_security`      | List securities within a watchlist group.                           |
-| ⬜   | Order history | `get_orders`            | Today's orders for an account.                                      |
-| ⬜   | Order history | `get_deals`              | Today's filled deals for an account.                                 |
-| ⬜   | Order history | `get_history_orders`     | Historical orders for an account.                                    |
-| ⬜   | Order history | `get_history_deals`      | Historical filled deals for an account.                              |
+| ✅   | Order history | `get_orders`            | Today's orders for an account.                                      |
+| ✅   | Order history | `get_deals`              | Today's filled deals for an account.                                 |
+| ✅   | Order history | `get_history_orders`     | Historical orders for an account.                                    |
+| ✅   | Order history | `get_history_deals`      | Historical filled deals for an account.                              |
 | ⬜   | Trading     | `unlock_trade`           | Unlock a REAL account for trading (uses `MOOMOO_TRADE_PASSWORD`/`_MD5` and `MOOMOO_SECURITY_FIRM`). |
 | ⬜   | Trading     | `place_order` / `modify_order` / `cancel_order` | Submit, change, or cancel an order.                  |
 
