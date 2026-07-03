@@ -74,6 +74,12 @@ func (m *accountMockClient) GetCashFlow(_ context.Context, accountID uint64, _, 
 	m.gotAccountID = accountID
 	return m.cashFlowResult, m.cashFlowErr
 }
+func (m *accountMockClient) GetUserSecurityGroup(_ context.Context, _ string) ([]moomoo.SecurityGroup, error) {
+	return nil, nil
+}
+func (m *accountMockClient) GetUserSecurity(_ context.Context, _ string) ([]moomoo.WatchlistSecurity, error) {
+	return nil, nil
+}
 
 func newAccountServer(c moomoo.MoomooClient) (*mcp.ClientSession, func()) {
 	s := mcp.NewServer(&mcp.Implementation{Name: "test", Version: "0"}, nil)

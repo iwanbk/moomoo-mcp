@@ -30,6 +30,7 @@ func main() {
 	tools.RegisterSystem(server, client)
 	tools.RegisterMarketData(server, client)
 	tools.RegisterAccount(server, client)
+	tools.RegisterWatchlist(server, client)
 
 	if err := server.Run(ctx, &mcp.StdioTransport{}); err != nil {
 		log.Fatalf("server: %v", err)
