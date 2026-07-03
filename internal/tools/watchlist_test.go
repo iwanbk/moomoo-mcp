@@ -65,6 +65,18 @@ func (m *watchlistMockClient) GetUserSecurity(_ context.Context, groupName strin
 	m.gotGroupName = groupName
 	return m.securitiesResult, m.securitiesErr
 }
+func (m *watchlistMockClient) GetOrders(_ context.Context, _ uint64, _, _ string) ([]moomoo.Order, error) {
+	return nil, nil
+}
+func (m *watchlistMockClient) GetDeals(_ context.Context, _ uint64, _, _ string) ([]moomoo.Deal, error) {
+	return nil, nil
+}
+func (m *watchlistMockClient) GetHistoryOrders(_ context.Context, _ uint64, _, _, _, _ string, _ []string) ([]moomoo.Order, error) {
+	return nil, nil
+}
+func (m *watchlistMockClient) GetHistoryDeals(_ context.Context, _ uint64, _, _, _, _ string, _ []string) ([]moomoo.Deal, error) {
+	return nil, nil
+}
 
 func newWatchlistServer(c moomoo.MoomooClient) (*mcp.ClientSession, func()) {
 	s := mcp.NewServer(&mcp.Implementation{Name: "test", Version: "0"}, nil)

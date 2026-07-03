@@ -80,6 +80,18 @@ func (m *accountMockClient) GetUserSecurityGroup(_ context.Context, _ string) ([
 func (m *accountMockClient) GetUserSecurity(_ context.Context, _ string) ([]moomoo.WatchlistSecurity, error) {
 	return nil, nil
 }
+func (m *accountMockClient) GetOrders(_ context.Context, _ uint64, _, _ string) ([]moomoo.Order, error) {
+	return nil, nil
+}
+func (m *accountMockClient) GetDeals(_ context.Context, _ uint64, _, _ string) ([]moomoo.Deal, error) {
+	return nil, nil
+}
+func (m *accountMockClient) GetHistoryOrders(_ context.Context, _ uint64, _, _, _, _ string, _ []string) ([]moomoo.Order, error) {
+	return nil, nil
+}
+func (m *accountMockClient) GetHistoryDeals(_ context.Context, _ uint64, _, _, _, _ string, _ []string) ([]moomoo.Deal, error) {
+	return nil, nil
+}
 
 func newAccountServer(c moomoo.MoomooClient) (*mcp.ClientSession, func()) {
 	s := mcp.NewServer(&mcp.Implementation{Name: "test", Version: "0"}, nil)
