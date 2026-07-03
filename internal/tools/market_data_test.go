@@ -55,6 +55,12 @@ func (m *marketMockClient) GetMarginRatio(_ context.Context, _ uint64, _, _ stri
 func (m *marketMockClient) GetCashFlow(_ context.Context, _ uint64, _, _, _ string) ([]moomoo.CashFlow, error) {
 	return nil, nil
 }
+func (m *marketMockClient) GetUserSecurityGroup(_ context.Context, _ string) ([]moomoo.SecurityGroup, error) {
+	return nil, nil
+}
+func (m *marketMockClient) GetUserSecurity(_ context.Context, _ string) ([]moomoo.WatchlistSecurity, error) {
+	return nil, nil
+}
 
 func newMarketServer(c moomoo.MoomooClient) (*mcp.ClientSession, func()) {
 	s := mcp.NewServer(&mcp.Implementation{Name: "test", Version: "0"}, nil)

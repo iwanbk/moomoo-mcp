@@ -49,6 +49,12 @@ func (m *mockClient) GetMarginRatio(_ context.Context, _ uint64, _, _ string, _ 
 func (m *mockClient) GetCashFlow(_ context.Context, _ uint64, _, _, _ string) ([]moomoo.CashFlow, error) {
 	return nil, nil
 }
+func (m *mockClient) GetUserSecurityGroup(_ context.Context, _ string) ([]moomoo.SecurityGroup, error) {
+	return nil, nil
+}
+func (m *mockClient) GetUserSecurity(_ context.Context, _ string) ([]moomoo.WatchlistSecurity, error) {
+	return nil, nil
+}
 
 // connect creates an in-memory MCP client session connected to the given server.
 func connectTest(ctx context.Context, s *mcp.Server) (*mcp.ClientSession, func()) {

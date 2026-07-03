@@ -23,6 +23,8 @@ type MoomooClient interface {
 	GetMaxTradable(ctx context.Context, accountID uint64, trdEnv, trdMarket, orderType, code string, price float64) (*MaxTradable, error)
 	GetMarginRatio(ctx context.Context, accountID uint64, trdEnv, trdMarket string, codes []string) ([]MarginRatio, error)
 	GetCashFlow(ctx context.Context, accountID uint64, trdEnv, trdMarket, clearingDate string) ([]CashFlow, error)
+	GetUserSecurityGroup(ctx context.Context, groupType string) ([]SecurityGroup, error)
+	GetUserSecurity(ctx context.Context, groupName string) ([]WatchlistSecurity, error)
 }
 
 // Client wraps the hyperjiang/futu SDK.

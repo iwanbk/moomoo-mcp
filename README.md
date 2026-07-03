@@ -20,8 +20,8 @@ Provides read-only trading tools (system health, market data, account info) via 
 | ✅   | Account     | `get_max_tradable`       | Maximum tradable quantities for a security under an account.        |
 | ✅   | Account     | `get_margin_ratio`       | Margin ratio info for one or more securities under an account.      |
 | ✅   | Account     | `get_cash_flow`          | Trading cash flow summary for an account on a given date.           |
-| ⬜   | Watchlist   | `get_user_security_group`| List the user's watchlist groups.                                   |
-| ⬜   | Watchlist   | `get_user_security`      | List securities within a watchlist group.                           |
+| ✅   | Watchlist   | `get_user_security_group`| List the user's watchlist groups.                                   |
+| ✅   | Watchlist   | `get_user_security`      | List securities within a watchlist group.                           |
 | ⬜   | Order history | `get_orders`            | Today's orders for an account.                                      |
 | ⬜   | Order history | `get_deals`              | Today's filled deals for an account.                                 |
 | ⬜   | Order history | `get_history_orders`     | Historical orders for an account.                                    |
