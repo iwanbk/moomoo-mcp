@@ -1,5 +1,8 @@
 # moomoo-mcp
 
+[![CI](https://github.com/iwanbk/moomoo-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/iwanbk/moomoo-mcp/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/iwanbk/moomoo-mcp)](https://github.com/iwanbk/moomoo-mcp/releases/latest)
+
 A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server for the [Moomoo/Futu](https://www.moomoo.com) trading platform, written in Go.
 
 Provides read-only trading tools (system health, market data, account info) via MCP stdio transport, suitable for use with Claude Desktop or any MCP client.
@@ -49,12 +52,24 @@ Provides read-only trading tools (system health, market data, account info) via 
 
 By default (no trade password set) the server is **SIMULATE-only**: account tools (`get_assets`, `get_positions`, etc.) can only query SIMULATE accounts, and requests with `trd_env=REAL` are rejected. Setting `MOOMOO_TRADE_PASSWORD` (or `_MD5`) lifts this gate so the read-only account tools can also query REAL accounts — it does not unlock trading itself. Once trading tools are implemented, `MOOMOO_TRADE_PASSWORD`/`_MD5` and `MOOMOO_SECURITY_FIRM` will also be used to authorize `unlock_trade` on a REAL account.
 
+## Installation
+
+### Download a release binary
+
+Prebuilt binaries for macOS, Linux, and Windows (amd64/arm64) are published on the
+[releases page](https://github.com/iwanbk/moomoo-mcp/releases/latest). Download the
+archive for your platform, extract it, and place `moomoo-mcp` (or `moomoo-mcp.exe`)
+somewhere on your `PATH`.
+
+### Build from source
+
+```bash
+go build -o moomoo-mcp ./cmd/moomoo-mcp
+```
+
 ## Usage
 
 ```bash
-# Build
-go build -o moomoo-mcp ./cmd/moomoo-mcp
-
 # Run (SIMULATE-only, no trade password set)
 ./moomoo-mcp
 
