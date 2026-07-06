@@ -34,6 +34,31 @@ Provides read-only trading tools (system health, market data, account info) via 
 
 > This server is read-only today — no order can be placed. Trading tools are planned for a later phase.
 
+## Token-efficient output
+
+Since responses go straight into an LLM's context window, this server trims
+output to reduce token usage:
+
+- **Columnar format for multi-row tools.** `get_historical_klines`,
+  `get_history_orders`, and `get_history_deals` can return many rows. Instead
+  of an array of objects (which repeats every field name on every row), these
+  tools return a single `{"columns": [...], "rows": [[...], ...]}` object —
+  field names are sent once instead of once per row.
+
+  ```json
+  {
+    "columns": ["time", "open", "high", "low", "close", "volume", "turnover", "change_rate"],
+    "rows": [
+      ["2024-01-01", 123.45, 124.0, 122.5, 123.8, 1000000, 123456789, 0.023]
+    ]
+  }
+  ```
+
+- **Number rounding.** Prices, change rates, and turnover figures across
+  snapshots, quotes, klines, and the order book are rounded to a sensible
+  precision (prices to 3 decimals, rates to 4 decimals, turnover to a whole
+  number) — dropping digits no caller acts on.
+
 ## Prerequisites
 
 1. Download and run **OpenD** from https://www.moomoo.com/download/OpenAPI
