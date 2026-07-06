@@ -16,7 +16,7 @@ func main() {
 
 	ctx := context.Background()
 
-	client, err := moomoo.New(cfg.OpendHost, cfg.OpendPort, cfg.SimulateOnly)
+	client, err := moomoo.New(cfg.OpendHost, cfg.OpendPort, cfg.SimulateOnly, cfg.DisableRounding)
 	if err != nil {
 		log.Fatalf("connect to OpenD at %s:%d: %v", cfg.OpendHost, cfg.OpendPort, err)
 	}

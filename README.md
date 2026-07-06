@@ -59,6 +59,15 @@ output to reduce token usage:
   precision (prices to 3 decimals, rates to 4 decimals, turnover to a whole
   number) — dropping digits no caller acts on.
 
+  Exception: US, HK, and SG allow sub-penny tick sizes below $1 (e.g. the US
+  SEC's $0.0001 tick for stocks under $1), so prices below 1 in those markets
+  are left unrounded to avoid losing real precision. JP and CN (SH/SZ) don't
+  need this — JPY has no sub-unit and CNY uses a flat 0.01 tick, so prices in
+  those markets are always safely covered by the 3-decimal rounding.
+
+  Set `MOOMOO_DISABLE_ROUNDING=true` to turn off all rounding and get raw
+  SDK values instead.
+
 ## Prerequisites
 
 1. Download and run **OpenD** from https://www.moomoo.com/download/OpenAPI
@@ -74,6 +83,7 @@ output to reduce token usage:
 | `MOOMOO_TRADE_PASSWORD`    | –             | Safety gate for REAL-account access (see below). Its value is not sent to OpenD yet — trading is not implemented. |
 | `MOOMOO_TRADE_PASSWORD_MD5`| –             | MD5 form of `MOOMOO_TRADE_PASSWORD`; same effect.        |
 | `MOOMOO_SECURITY_FIRM`     | –             | Not used yet; reserved for the future `unlock_trade` tool. |
+| `MOOMOO_DISABLE_ROUNDING`  | `false`       | Set to `true` to disable number rounding (see [Token-efficient output](#token-efficient-output)) and return raw SDK values. |
 
 By default (no trade password set) the server is **SIMULATE-only**: account tools (`get_assets`, `get_positions`, etc.) can only query SIMULATE accounts, and requests with `trd_env=REAL` are rejected. Setting `MOOMOO_TRADE_PASSWORD` (or `_MD5`) lifts this gate so the read-only account tools can also query REAL accounts — it does not unlock trading itself. Once trading tools are implemented, `MOOMOO_TRADE_PASSWORD`/`_MD5` and `MOOMOO_SECURITY_FIRM` will also be used to authorize `unlock_trade` on a REAL account.
 
