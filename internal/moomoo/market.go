@@ -21,19 +21,20 @@ type SessionData struct {
 }
 
 // sessionFromProto converts a protobuf PreAfterMarketData to SessionData.
-// Returns nil when the source is nil (session not available).
-func sessionFromProto(p *qotcommon.PreAfterMarketData) *SessionData {
+// Returns nil when the source is nil (session not available). market is the
+// security's market prefix (e.g. "US"), used to decide rounding precision.
+func (c *Client) sessionFromProto(p *qotcommon.PreAfterMarketData, market string) *SessionData {
 	if p == nil {
 		return nil
 	}
 	return &SessionData{
-		Price:      p.GetPrice(),
-		HighPrice:  p.GetHighPrice(),
-		LowPrice:   p.GetLowPrice(),
+		Price:      c.roundPrice(p.GetPrice(), market),
+		HighPrice:  c.roundPrice(p.GetHighPrice(), market),
+		LowPrice:   c.roundPrice(p.GetLowPrice(), market),
 		Volume:     p.GetVolume(),
-		Turnover:   p.GetTurnover(),
-		ChangeVal:  p.GetChangeVal(),
-		ChangeRate: p.GetChangeRate(),
+		Turnover:   c.roundTurnover(p.GetTurnover()),
+		ChangeVal:  c.roundPrice(p.GetChangeVal(), market),
+		ChangeRate: c.roundRate(p.GetChangeRate()),
 	}
 }
 
@@ -109,20 +110,22 @@ func (c *Client) GetSnapshot(ctx context.Context, codes []string) ([]MarketSnaps
 		if b == nil {
 			continue
 		}
+		code := adapt.SecurityToCode(b.GetSecurity())
+		market := marketFromCode(code)
 		out = append(out, MarketSnapshot{
-			Code:        adapt.SecurityToCode(b.GetSecurity()),
+			Code:        code,
 			Name:        b.GetName(),
-			CurPrice:    b.GetCurPrice(),
-			OpenPrice:   b.GetOpenPrice(),
-			HighPrice:   b.GetHighPrice(),
-			LowPrice:    b.GetLowPrice(),
-			LastClose:   b.GetLastClosePrice(),
+			CurPrice:    c.roundPrice(b.GetCurPrice(), market),
+			OpenPrice:   c.roundPrice(b.GetOpenPrice(), market),
+			HighPrice:   c.roundPrice(b.GetHighPrice(), market),
+			LowPrice:    c.roundPrice(b.GetLowPrice(), market),
+			LastClose:   c.roundPrice(b.GetLastClosePrice(), market),
 			Volume:      b.GetVolume(),
-			Turnover:    b.GetTurnover(),
+			Turnover:    c.roundTurnover(b.GetTurnover()),
 			UpdateTime:  b.GetUpdateTime(),
-			PreMarket:   sessionFromProto(b.GetPreMarket()),
-			AfterMarket: sessionFromProto(b.GetAfterMarket()),
-			Overnight:   sessionFromProto(b.GetOvernight()),
+			PreMarket:   c.sessionFromProto(b.GetPreMarket(), market),
+			AfterMarket: c.sessionFromProto(b.GetAfterMarket(), market),
+			Overnight:   c.sessionFromProto(b.GetOvernight(), market),
 		})
 	}
 	return out, nil
@@ -140,20 +143,22 @@ func (c *Client) GetQuote(ctx context.Context, codes []string) ([]Quote, error) 
 	}
 	out := make([]Quote, 0, len(qots))
 	for _, q := range qots {
+		code := adapt.SecurityToCode(q.GetSecurity())
+		market := marketFromCode(code)
 		out = append(out, Quote{
-			Code:        adapt.SecurityToCode(q.GetSecurity()),
+			Code:        code,
 			Name:        q.GetName(),
-			CurPrice:    q.GetCurPrice(),
-			OpenPrice:   q.GetOpenPrice(),
-			HighPrice:   q.GetHighPrice(),
-			LowPrice:    q.GetLowPrice(),
-			LastClose:   q.GetLastClosePrice(),
+			CurPrice:    c.roundPrice(q.GetCurPrice(), market),
+			OpenPrice:   c.roundPrice(q.GetOpenPrice(), market),
+			HighPrice:   c.roundPrice(q.GetHighPrice(), market),
+			LowPrice:    c.roundPrice(q.GetLowPrice(), market),
+			LastClose:   c.roundPrice(q.GetLastClosePrice(), market),
 			Volume:      q.GetVolume(),
-			Turnover:    q.GetTurnover(),
+			Turnover:    c.roundTurnover(q.GetTurnover()),
 			UpdateTime:  q.GetUpdateTime(),
-			PreMarket:   sessionFromProto(q.GetPreMarket()),
-			AfterMarket: sessionFromProto(q.GetAfterMarket()),
-			Overnight:   sessionFromProto(q.GetOvernight()),
+			PreMarket:   c.sessionFromProto(q.GetPreMarket(), market),
+			AfterMarket: c.sessionFromProto(q.GetAfterMarket(), market),
+			Overnight:   c.sessionFromProto(q.GetOvernight(), market),
 		})
 	}
 	return out, nil
@@ -166,6 +171,7 @@ func (c *Client) GetKlines(ctx context.Context, code string, klType int32, begin
 	if err != nil {
 		return nil, err
 	}
+	market := marketFromCode(code)
 	kls := s2c.GetKlList()
 	out := make([]Kline, 0, len(kls))
 	for _, kl := range kls {
@@ -174,13 +180,13 @@ func (c *Client) GetKlines(ctx context.Context, code string, klType int32, begin
 		}
 		out = append(out, Kline{
 			Time:       kl.GetTime(),
-			Open:       kl.GetOpenPrice(),
-			High:       kl.GetHighPrice(),
-			Low:        kl.GetLowPrice(),
-			Close:      kl.GetClosePrice(),
+			Open:       c.roundPrice(kl.GetOpenPrice(), market),
+			High:       c.roundPrice(kl.GetHighPrice(), market),
+			Low:        c.roundPrice(kl.GetLowPrice(), market),
+			Close:      c.roundPrice(kl.GetClosePrice(), market),
 			Volume:     kl.GetVolume(),
-			Turnover:   kl.GetTurnover(),
-			ChangeRate: kl.GetChangeRate(),
+			Turnover:   c.roundTurnover(kl.GetTurnover()),
+			ChangeRate: c.roundRate(kl.GetChangeRate()),
 		})
 	}
 	return out, nil
@@ -196,11 +202,12 @@ func (c *Client) GetOrderBook(ctx context.Context, code string) (*OrderBook, err
 	if err != nil {
 		return nil, err
 	}
+	market := marketFromCode(code)
 	toEntries := func(list []*qotcommon.OrderBook) []OrderBookEntry {
 		entries := make([]OrderBookEntry, 0, len(list))
 		for _, e := range list {
 			entries = append(entries, OrderBookEntry{
-				Price:  e.GetPrice(),
+				Price:  c.roundPrice(e.GetPrice(), market),
 				Volume: e.GetVolume(),
 				Count:  e.GetOrederCount(),
 			})

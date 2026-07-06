@@ -82,7 +82,7 @@ func RegisterMarketData(s *mcp.Server, c moomoo.MoomooClient) {
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "get_historical_klines",
-		Description: "Get historical K-line (candlestick) data. kl_type: 1min, 5min, 15min, 30min, 60min, day, week, month. begin_time/end_time format: yyyy-MM-dd.",
+		Description: "Get historical K-line (candlestick) data. kl_type: 1min, 5min, 15min, 30min, 60min, day, week, month. begin_time/end_time format: yyyy-MM-dd. Returns a columnar {columns, rows} object (field names sent once, not per row).",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, args klinesArgs) (*mcp.CallToolResult, any, error) {
 		klType, ok := klTypeMap[args.KLType]
 		if !ok {
@@ -92,7 +92,7 @@ func RegisterMarketData(s *mcp.Server, c moomoo.MoomooClient) {
 		if err != nil {
 			return toolError(fmt.Sprintf("get klines: %v", err)), nil, nil
 		}
-		return jsonResult(klines), nil, nil
+		return jsonResult(klinesToColumnar(klines)), nil, nil
 	})
 
 	mcp.AddTool(s, &mcp.Tool{

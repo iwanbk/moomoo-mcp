@@ -38,19 +38,23 @@ type Client struct {
 	// password was configured, so read-only account tools can't be pointed
 	// at a real account by mistake.
 	simulateOnly bool
+	// disableRounding turns off number rounding on outgoing float fields
+	// (prices, rates, turnover), returning raw SDK values instead.
+	disableRounding bool
 }
 
 // New connects to OpenD and returns a Client ready for use. simulateOnly
 // should be true when no trade password is configured; it prevents any
-// account tool from querying a REAL trading account.
-func New(host string, port int, simulateOnly bool) (*Client, error) {
+// account tool from querying a REAL trading account. disableRounding turns
+// off the number rounding normally applied to outgoing float fields.
+func New(host string, port int, simulateOnly, disableRounding bool) (*Client, error) {
 	sdk, err := futu.NewSDK(
 		client.WithAddr(fmt.Sprintf("%s:%d", host, port)),
 	)
 	if err != nil {
 		return nil, err
 	}
-	return &Client{sdk: sdk, simulateOnly: simulateOnly}, nil
+	return &Client{sdk: sdk, simulateOnly: simulateOnly, disableRounding: disableRounding}, nil
 }
 
 // Close shuts down the OpenD connection.

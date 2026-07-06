@@ -65,7 +65,7 @@ func RegisterOrders(s *mcp.Server, c moomoo.MoomooClient) {
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "get_history_orders",
-		Description: "List historical orders for one trading account within [begin_time, end_time] (format yyyy-MM-dd HH:mm:ss). codes optionally restricts the result to specific security codes.",
+		Description: "List historical orders for one trading account within [begin_time, end_time] (format yyyy-MM-dd HH:mm:ss). codes optionally restricts the result to specific security codes. Returns a columnar {columns, rows} object (field names sent once, not per row).",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, args historyOrdersArgs) (*mcp.CallToolResult, any, error) {
 		accountID, err := args.parseAccountID()
 		if err != nil {
@@ -75,12 +75,12 @@ func RegisterOrders(s *mcp.Server, c moomoo.MoomooClient) {
 		if err != nil {
 			return toolError(fmt.Sprintf("get history orders: %v", err)), nil, nil
 		}
-		return jsonResult(orders), nil, nil
+		return jsonResult(ordersToColumnar(orders)), nil, nil
 	})
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "get_history_deals",
-		Description: "List historical filled deals for one trading account within [begin_time, end_time] (format yyyy-MM-dd HH:mm:ss). codes optionally restricts the result to specific security codes.",
+		Description: "List historical filled deals for one trading account within [begin_time, end_time] (format yyyy-MM-dd HH:mm:ss). codes optionally restricts the result to specific security codes. Returns a columnar {columns, rows} object (field names sent once, not per row).",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, args historyDealsArgs) (*mcp.CallToolResult, any, error) {
 		accountID, err := args.parseAccountID()
 		if err != nil {
@@ -90,6 +90,6 @@ func RegisterOrders(s *mcp.Server, c moomoo.MoomooClient) {
 		if err != nil {
 			return toolError(fmt.Sprintf("get history deals: %v", err)), nil, nil
 		}
-		return jsonResult(deals), nil, nil
+		return jsonResult(dealsToColumnar(deals)), nil, nil
 	})
 }

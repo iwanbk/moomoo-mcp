@@ -242,13 +242,13 @@ func TestGetHistoryOrders_success(t *testing.T) {
 		t.Fatalf("unexpected tool error: %v", res.Content)
 	}
 
-	var got []moomoo.Order
+	var got Columnar
 	text := res.Content[0].(*mcp.TextContent).Text
 	if err := json.Unmarshal([]byte(text), &got); err != nil {
 		t.Fatalf("unmarshal: %v (raw: %s)", err, text)
 	}
-	if len(got) != 1 || got[0].OrderID != "123" {
-		t.Errorf("unexpected result: %+v", got)
+	if len(got.Rows) != 1 || got.Rows[0][0] != "123" {
+		t.Errorf("unexpected rows: %+v", got.Rows)
 	}
 	if mock.gotBeginTime != "2026-06-01 00:00:00" || mock.gotEndTime != "2026-07-01 00:00:00" {
 		t.Errorf("want begin/end time forwarded, got %q/%q", mock.gotBeginTime, mock.gotEndTime)
@@ -305,13 +305,13 @@ func TestGetHistoryDeals_success(t *testing.T) {
 		t.Fatalf("unexpected tool error: %v", res.Content)
 	}
 
-	var got []moomoo.Deal
+	var got Columnar
 	text := res.Content[0].(*mcp.TextContent).Text
 	if err := json.Unmarshal([]byte(text), &got); err != nil {
 		t.Fatalf("unmarshal: %v (raw: %s)", err, text)
 	}
-	if len(got) != 1 || got[0].FillID != "789" {
-		t.Errorf("unexpected result: %+v", got)
+	if len(got.Rows) != 1 || got.Rows[0][0] != "789" {
+		t.Errorf("unexpected rows: %+v", got.Rows)
 	}
 }
 

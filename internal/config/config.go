@@ -20,6 +20,9 @@ type Config struct {
 	// SimulateOnly is true when no trade password is configured, preventing
 	// accidental real-account operations.
 	SimulateOnly bool
+	// DisableRounding turns off number rounding on outgoing float fields
+	// (prices, rates, turnover), returning raw SDK values instead.
+	DisableRounding bool
 }
 
 // Load reads configuration from environment variables with safe defaults.
@@ -34,7 +37,15 @@ func Load() *Config {
 		TradePasswordMD5: tradePassMD5,
 		SecurityFirm:     os.Getenv("MOOMOO_SECURITY_FIRM"),
 		SimulateOnly:     tradePass == "" && tradePassMD5 == "",
+		DisableRounding:  parseBool(os.Getenv("MOOMOO_DISABLE_ROUNDING")),
 	}
+}
+
+// parseBool parses a boolean env var, treating any unparseable or empty
+// value as false.
+func parseBool(s string) bool {
+	b, _ := strconv.ParseBool(s)
+	return b
 }
 
 func getenv(key, fallback string) string {

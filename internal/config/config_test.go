@@ -10,6 +10,7 @@ func TestLoad_defaults(t *testing.T) {
 	t.Setenv("MOOMOO_TRADE_PASSWORD", "")
 	t.Setenv("MOOMOO_TRADE_PASSWORD_MD5", "")
 	t.Setenv("MOOMOO_SECURITY_FIRM", "")
+	t.Setenv("MOOMOO_DISABLE_ROUNDING", "")
 
 	cfg := Load()
 
@@ -22,6 +23,9 @@ func TestLoad_defaults(t *testing.T) {
 	if !cfg.SimulateOnly {
 		t.Error("SimulateOnly should be true when no trade password is set")
 	}
+	if cfg.DisableRounding {
+		t.Error("DisableRounding should default to false")
+	}
 }
 
 func TestLoad_custom(t *testing.T) {
@@ -30,6 +34,7 @@ func TestLoad_custom(t *testing.T) {
 	t.Setenv("MOOMOO_TRADE_PASSWORD", "secret")
 	t.Setenv("MOOMOO_TRADE_PASSWORD_MD5", "")
 	t.Setenv("MOOMOO_SECURITY_FIRM", "FUTUSG")
+	t.Setenv("MOOMOO_DISABLE_ROUNDING", "true")
 
 	cfg := Load()
 
@@ -44,6 +49,9 @@ func TestLoad_custom(t *testing.T) {
 	}
 	if cfg.SecurityFirm != "FUTUSG" {
 		t.Errorf("SecurityFirm = %q", cfg.SecurityFirm)
+	}
+	if !cfg.DisableRounding {
+		t.Error("DisableRounding should be true when MOOMOO_DISABLE_ROUNDING=true")
 	}
 }
 
