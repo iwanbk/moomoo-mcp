@@ -239,13 +239,22 @@ func TestGetHistoricalKlines_success(t *testing.T) {
 		t.Fatalf("unexpected tool error: %v", res.Content)
 	}
 
-	var got []moomoo.Kline
+	var got Columnar
 	text := res.Content[0].(*mcp.TextContent).Text
 	if err := json.Unmarshal([]byte(text), &got); err != nil {
 		t.Fatalf("unmarshal: %v (raw: %s)", err, text)
 	}
-	if len(got) != 1 || got[0].Time != "2024-01-02" || got[0].Close != 186.5 {
-		t.Errorf("unexpected result: %+v", got)
+	wantColumns := []string{"time", "open", "high", "low", "close", "volume", "turnover", "change_rate"}
+	if len(got.Columns) != len(wantColumns) {
+		t.Fatalf("unexpected columns: %v", got.Columns)
+	}
+	for i, c := range wantColumns {
+		if got.Columns[i] != c {
+			t.Errorf("column %d: want %q, got %q", i, c, got.Columns[i])
+		}
+	}
+	if len(got.Rows) != 1 || got.Rows[0][0] != "2024-01-02" || got.Rows[0][4] != 186.5 {
+		t.Errorf("unexpected rows: %+v", got.Rows)
 	}
 }
 
