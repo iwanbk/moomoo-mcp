@@ -32,10 +32,11 @@ type quoteArgs struct {
 }
 
 type klinesArgs struct {
-	Code      string `json:"code"`
-	KLType    string `json:"kl_type"`
-	BeginTime string `json:"begin_time"`
-	EndTime   string `json:"end_time"`
+	Code      string   `json:"code"`
+	KLType    string   `json:"kl_type"`
+	BeginTime string   `json:"begin_time"`
+	EndTime   string   `json:"end_time"`
+	Fields    []string `json:"fields,omitempty" jsonschema:"Optional list of output columns, in the order they should appear. Valid values: time, open, high, low, close, volume, turnover, change_rate. Default when omitted: time, open, high, low, close, volume."`
 }
 
 type orderBookArgs struct {
@@ -82,7 +83,7 @@ func RegisterMarketData(s *mcp.Server, c moomoo.MoomooClient) {
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "get_historical_klines",
-		Description: "Get historical K-line (candlestick) data. kl_type: 1min, 5min, 15min, 30min, 60min, day, week, month. begin_time/end_time format: yyyy-MM-dd. Returns a columnar {columns, rows} object (field names sent once, not per row).",
+		Description: "Get historical K-line (candlestick) data. kl_type: 1min, 5min, 15min, 30min, 60min, day, week, month. begin_time/end_time format: yyyy-MM-dd. Returns a columnar {columns, rows} object (field names sent once, not per row). Use `fields` to select which columns are returned; defaults to a lean subset.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, args klinesArgs) (*mcp.CallToolResult, any, error) {
 		klType, ok := klTypeMap[args.KLType]
 		if !ok {
@@ -92,7 +93,11 @@ func RegisterMarketData(s *mcp.Server, c moomoo.MoomooClient) {
 		if err != nil {
 			return toolError(fmt.Sprintf("get klines: %v", err)), nil, nil
 		}
-		return jsonResult(klinesToColumnar(klines)), nil, nil
+		col, err := klinesToColumnar(klines, args.Fields)
+		if err != nil {
+			return toolError(err.Error()), nil, nil
+		}
+		return jsonResult(col), nil, nil
 	})
 
 	mcp.AddTool(s, &mcp.Tool{

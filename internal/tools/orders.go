@@ -22,6 +22,7 @@ type historyOrdersArgs struct {
 	BeginTime string   `json:"begin_time"`
 	EndTime   string   `json:"end_time"`
 	Codes     []string `json:"codes,omitempty"`
+	Fields    []string `json:"fields,omitempty" jsonschema:"Optional list of output columns, in the order they should appear. Valid values: order_id, order_id_ex, code, name, trd_side, order_type, order_status, qty, price, fill_qty, fill_avg_price, create_time, update_time, remark, last_err_msg. Default when omitted: order_id, code, name, trd_side, order_type, order_status, qty, price, fill_qty, fill_avg_price, create_time, update_time."`
 }
 
 type historyDealsArgs struct {
@@ -29,6 +30,7 @@ type historyDealsArgs struct {
 	BeginTime string   `json:"begin_time"`
 	EndTime   string   `json:"end_time"`
 	Codes     []string `json:"codes,omitempty"`
+	Fields    []string `json:"fields,omitempty" jsonschema:"Optional list of output columns, in the order they should appear. Valid values: fill_id, fill_id_ex, order_id, order_id_ex, code, name, trd_side, qty, price, create_time, status, counter_broker_name. Default when omitted: fill_id, order_id, code, name, trd_side, qty, price, create_time, status."`
 }
 
 // RegisterOrders registers the 4 order history read-only tools on the MCP server.
@@ -65,7 +67,7 @@ func RegisterOrders(s *mcp.Server, c moomoo.MoomooClient) {
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "get_history_orders",
-		Description: "List historical orders for one trading account within [begin_time, end_time] (format yyyy-MM-dd HH:mm:ss). codes optionally restricts the result to specific security codes. Returns a columnar {columns, rows} object (field names sent once, not per row).",
+		Description: "List historical orders for one trading account within [begin_time, end_time] (format yyyy-MM-dd HH:mm:ss). codes optionally restricts the result to specific security codes. Returns a columnar {columns, rows} object (field names sent once, not per row). Use `fields` to select which columns are returned; defaults to a lean subset.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, args historyOrdersArgs) (*mcp.CallToolResult, any, error) {
 		accountID, err := args.parseAccountID()
 		if err != nil {
@@ -75,12 +77,16 @@ func RegisterOrders(s *mcp.Server, c moomoo.MoomooClient) {
 		if err != nil {
 			return toolError(fmt.Sprintf("get history orders: %v", err)), nil, nil
 		}
-		return jsonResult(ordersToColumnar(orders)), nil, nil
+		col, err := ordersToColumnar(orders, args.Fields)
+		if err != nil {
+			return toolError(err.Error()), nil, nil
+		}
+		return jsonResult(col), nil, nil
 	})
 
 	mcp.AddTool(s, &mcp.Tool{
 		Name:        "get_history_deals",
-		Description: "List historical filled deals for one trading account within [begin_time, end_time] (format yyyy-MM-dd HH:mm:ss). codes optionally restricts the result to specific security codes. Returns a columnar {columns, rows} object (field names sent once, not per row).",
+		Description: "List historical filled deals for one trading account within [begin_time, end_time] (format yyyy-MM-dd HH:mm:ss). codes optionally restricts the result to specific security codes. Returns a columnar {columns, rows} object (field names sent once, not per row). Use `fields` to select which columns are returned; defaults to a lean subset.",
 	}, func(ctx context.Context, _ *mcp.CallToolRequest, args historyDealsArgs) (*mcp.CallToolResult, any, error) {
 		accountID, err := args.parseAccountID()
 		if err != nil {
@@ -90,6 +96,10 @@ func RegisterOrders(s *mcp.Server, c moomoo.MoomooClient) {
 		if err != nil {
 			return toolError(fmt.Sprintf("get history deals: %v", err)), nil, nil
 		}
-		return jsonResult(dealsToColumnar(deals)), nil, nil
+		col, err := dealsToColumnar(deals, args.Fields)
+		if err != nil {
+			return toolError(err.Error()), nil, nil
+		}
+		return jsonResult(col), nil, nil
 	})
 }
