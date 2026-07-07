@@ -244,7 +244,8 @@ func TestGetHistoricalKlines_success(t *testing.T) {
 	if err := json.Unmarshal([]byte(text), &got); err != nil {
 		t.Fatalf("unmarshal: %v (raw: %s)", err, text)
 	}
-	wantColumns := []string{"time", "open", "high", "low", "close", "volume", "turnover", "change_rate"}
+	// Default (fields omitted) is the lean set, dropping turnover/change_rate.
+	wantColumns := []string{"time", "open", "high", "low", "close", "volume"}
 	if len(got.Columns) != len(wantColumns) {
 		t.Fatalf("unexpected columns: %v", got.Columns)
 	}
@@ -255,6 +256,67 @@ func TestGetHistoricalKlines_success(t *testing.T) {
 	}
 	if len(got.Rows) != 1 || got.Rows[0][0] != "2024-01-02" || got.Rows[0][4] != 186.5 {
 		t.Errorf("unexpected rows: %+v", got.Rows)
+	}
+}
+
+func TestGetHistoricalKlines_explicitFields(t *testing.T) {
+	want := []moomoo.Kline{
+		{Time: "2024-01-02", Close: 186.5, Turnover: 123456.0, ChangeRate: 0.02},
+	}
+	cs, cleanup := newMarketServer(&marketMockClient{klinesResult: want})
+	defer cleanup()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name: "get_historical_klines",
+		Arguments: map[string]any{
+			"code":       "US.AAPL",
+			"kl_type":    "day",
+			"begin_time": "2024-01-01",
+			"end_time":   "2024-01-31",
+			"fields":     []string{"close", "turnover", "change_rate"},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if res.IsError {
+		t.Fatalf("unexpected tool error: %v", res.Content)
+	}
+
+	var got Columnar
+	text := res.Content[0].(*mcp.TextContent).Text
+	if err := json.Unmarshal([]byte(text), &got); err != nil {
+		t.Fatalf("unmarshal: %v (raw: %s)", err, text)
+	}
+	wantColumns := []string{"close", "turnover", "change_rate"}
+	if len(got.Columns) != len(wantColumns) {
+		t.Fatalf("unexpected columns: %v", got.Columns)
+	}
+	if got.Rows[0][0] != 186.5 {
+		t.Errorf("unexpected rows: %+v", got.Rows)
+	}
+}
+
+func TestGetHistoricalKlines_unknownField(t *testing.T) {
+	want := []moomoo.Kline{{Time: "2024-01-02", Close: 186.5}}
+	cs, cleanup := newMarketServer(&marketMockClient{klinesResult: want})
+	defer cleanup()
+
+	res, err := cs.CallTool(context.Background(), &mcp.CallToolParams{
+		Name: "get_historical_klines",
+		Arguments: map[string]any{
+			"code":       "US.AAPL",
+			"kl_type":    "day",
+			"begin_time": "2024-01-01",
+			"end_time":   "2024-01-31",
+			"fields":     []string{"bogus"},
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !res.IsError {
+		t.Error("want IsError=true for unknown field")
 	}
 }
 
