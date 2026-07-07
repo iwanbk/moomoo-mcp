@@ -7,6 +7,8 @@ A [Model Context Protocol (MCP)](https://modelcontextprotocol.io) server for the
 
 Provides read-only trading tools (system health, market data, account info) via MCP stdio transport, suitable for use with Claude Desktop or any MCP client.
 
+Responses are kept token-efficient by design — columnar output, number rounding, and opt-in column selection all reduce what gets sent into the LLM's context window (see [Token-efficient output](#token-efficient-output)).
+
 ## Available tools
 
 | Done | Domain      | Tool                     | Description                                                        |
@@ -53,6 +55,19 @@ output to reduce token usage:
     ]
   }
   ```
+
+- **Field selection (`fields`).** The same three tools accept an optional
+  `fields` argument to control which columns are returned, in the order
+  given. Omitting it returns a lean default set rather than every column:
+
+  | Tool | Default columns | All columns |
+  |------|------------------|--------------|
+  | `get_historical_klines` | `time, open, high, low, close, volume` | adds `turnover, change_rate` |
+  | `get_history_orders` | `order_id, code, name, trd_side, order_type, order_status, qty, price, fill_qty, fill_avg_price, create_time, update_time` | adds `order_id_ex, remark, last_err_msg` |
+  | `get_history_deals` | `fill_id, order_id, code, name, trd_side, qty, price, create_time, status` | adds `fill_id_ex, order_id_ex, counter_broker_name` |
+
+  Requesting an unknown column name returns a tool error listing the valid
+  columns.
 
 - **Number rounding.** Prices, change rates, and turnover figures across
   snapshots, quotes, klines, and the order book are rounded to a sensible
