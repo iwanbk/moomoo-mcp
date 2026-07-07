@@ -89,6 +89,15 @@ output to reduce token usage:
 2. Log in to OpenD with your Moomoo/Futu account.
 3. OpenD listens on `127.0.0.1:11111` by default.
 
+### Connection handling
+
+The server does not require OpenD to be running when it starts. It connects to
+OpenD lazily on the first tool call and **reconnects automatically** after a
+drop (e.g. OpenD restart), so you never have to restart the MCP server or run
+`/mcp reconnect` because of an OpenD blip. When OpenD is unreachable, tools
+return a connection error and `check_health` reports `connected: false` instead
+of the server exiting.
+
 ## Configuration
 
 | Environment Variable       | Default       | Description                                              |

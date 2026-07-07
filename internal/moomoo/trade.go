@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/hyperjiang/futu"
 	"github.com/hyperjiang/futu/adapt"
 	"github.com/hyperjiang/futu/pb/trdcommon"
 	"github.com/hyperjiang/futu/pb/trdflowsummary"
@@ -192,27 +193,29 @@ func (c *Client) tradeHeader(accountID uint64, trdEnv, trdMarket string) (*trdco
 
 // GetAccounts returns the trading accounts visible to this OpenD session.
 func (c *Client) GetAccounts(ctx context.Context) ([]Account, error) {
-	accs, err := c.sdk.GetAccListWithContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]Account, 0, len(accs))
-	for _, a := range accs {
-		markets := make([]string, 0, len(a.GetTrdMarketAuthList()))
-		for _, m := range a.GetTrdMarketAuthList() {
-			if name, ok := trdMarketNames[m]; ok {
-				markets = append(markets, name)
-			}
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) ([]Account, error) {
+		accs, err := sdk.GetAccListWithContext(ctx)
+		if err != nil {
+			return nil, err
 		}
-		out = append(out, Account{
-			AccountID:    strconv.FormatUint(a.GetAccID(), 10),
-			TrdEnv:       trdEnvName(a.GetTrdEnv()),
-			TrdMarkets:   markets,
-			AccType:      trdAccTypeNames[a.GetAccType()],
-			SecurityFirm: securityFirmNames[a.GetSecurityFirm()],
-		})
-	}
-	return out, nil
+		out := make([]Account, 0, len(accs))
+		for _, a := range accs {
+			markets := make([]string, 0, len(a.GetTrdMarketAuthList()))
+			for _, m := range a.GetTrdMarketAuthList() {
+				if name, ok := trdMarketNames[m]; ok {
+					markets = append(markets, name)
+				}
+			}
+			out = append(out, Account{
+				AccountID:    strconv.FormatUint(a.GetAccID(), 10),
+				TrdEnv:       trdEnvName(a.GetTrdEnv()),
+				TrdMarkets:   markets,
+				AccType:      trdAccTypeNames[a.GetAccType()],
+				SecurityFirm: securityFirmNames[a.GetSecurityFirm()],
+			})
+		}
+		return out, nil
+	})
 }
 
 // GetAssets returns funds/asset information for one account.
@@ -221,20 +224,22 @@ func (c *Client) GetAssets(ctx context.Context, accountID uint64, trdEnv, trdMar
 	if err != nil {
 		return nil, err
 	}
-	f, err := c.sdk.GetFundsWithContext(ctx, header)
-	if err != nil {
-		return nil, err
-	}
-	return &Assets{
-		Power:                 f.GetPower(),
-		TotalAssets:           f.GetTotalAssets(),
-		Cash:                  f.GetCash(),
-		MarketValue:           f.GetMarketVal(),
-		FrozenCash:            f.GetFrozenCash(),
-		DebtCash:              f.GetDebtCash(),
-		AvailableWithdrawCash: f.GetAvlWithdrawalCash(),
-		RiskLevel:             f.GetRiskLevel(),
-	}, nil
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) (*Assets, error) {
+		f, err := sdk.GetFundsWithContext(ctx, header)
+		if err != nil {
+			return nil, err
+		}
+		return &Assets{
+			Power:                 f.GetPower(),
+			TotalAssets:           f.GetTotalAssets(),
+			Cash:                  f.GetCash(),
+			MarketValue:           f.GetMarketVal(),
+			FrozenCash:            f.GetFrozenCash(),
+			DebtCash:              f.GetDebtCash(),
+			AvailableWithdrawCash: f.GetAvlWithdrawalCash(),
+			RiskLevel:             f.GetRiskLevel(),
+		}, nil
+	})
 }
 
 // GetPositions returns open positions for one account.
@@ -243,27 +248,29 @@ func (c *Client) GetPositions(ctx context.Context, accountID uint64, trdEnv, trd
 	if err != nil {
 		return nil, err
 	}
-	positions, err := c.sdk.GetPositionListWithContext(ctx, header)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]Position, 0, len(positions))
-	for _, p := range positions {
-		out = append(out, Position{
-			PositionID:   strconv.FormatUint(p.GetPositionID(), 10),
-			PositionSide: positionSideName(p.GetPositionSide()),
-			Code:         p.GetCode(),
-			Name:         p.GetName(),
-			Qty:          p.GetQty(),
-			CanSellQty:   p.GetCanSellQty(),
-			Price:        p.GetPrice(),
-			CostPrice:    p.GetCostPrice(),
-			Value:        p.GetVal(),
-			PlValue:      p.GetPlVal(),
-			PlRatio:      p.GetPlRatio(),
-		})
-	}
-	return out, nil
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) ([]Position, error) {
+		positions, err := sdk.GetPositionListWithContext(ctx, header)
+		if err != nil {
+			return nil, err
+		}
+		out := make([]Position, 0, len(positions))
+		for _, p := range positions {
+			out = append(out, Position{
+				PositionID:   strconv.FormatUint(p.GetPositionID(), 10),
+				PositionSide: positionSideName(p.GetPositionSide()),
+				Code:         p.GetCode(),
+				Name:         p.GetName(),
+				Qty:          p.GetQty(),
+				CanSellQty:   p.GetCanSellQty(),
+				Price:        p.GetPrice(),
+				CostPrice:    p.GetCostPrice(),
+				Value:        p.GetVal(),
+				PlValue:      p.GetPlVal(),
+				PlRatio:      p.GetPlRatio(),
+			})
+		}
+		return out, nil
+	})
 }
 
 // GetMaxTradable returns the maximum tradable quantities for a security
@@ -277,17 +284,19 @@ func (c *Client) GetMaxTradable(ctx context.Context, accountID uint64, trdEnv, t
 	if !ok {
 		return nil, fmt.Errorf("unknown order_type %q", orderType)
 	}
-	m, err := c.sdk.GetMaxTrdQtysWithContext(ctx, header, ot, code, price)
-	if err != nil {
-		return nil, err
-	}
-	return &MaxTradable{
-		MaxCashBuy:          m.GetMaxCashBuy(),
-		MaxCashAndMarginBuy: m.GetMaxCashAndMarginBuy(),
-		MaxPositionSell:     m.GetMaxPositionSell(),
-		MaxSellShort:        m.GetMaxSellShort(),
-		MaxBuyBack:          m.GetMaxBuyBack(),
-	}, nil
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) (*MaxTradable, error) {
+		m, err := sdk.GetMaxTrdQtysWithContext(ctx, header, ot, code, price)
+		if err != nil {
+			return nil, err
+		}
+		return &MaxTradable{
+			MaxCashBuy:          m.GetMaxCashBuy(),
+			MaxCashAndMarginBuy: m.GetMaxCashAndMarginBuy(),
+			MaxPositionSell:     m.GetMaxPositionSell(),
+			MaxSellShort:        m.GetMaxSellShort(),
+			MaxBuyBack:          m.GetMaxBuyBack(),
+		}, nil
+	})
 }
 
 // GetMarginRatio returns margin ratio info for the given securities under
@@ -297,21 +306,23 @@ func (c *Client) GetMarginRatio(ctx context.Context, accountID uint64, trdEnv, t
 	if err != nil {
 		return nil, err
 	}
-	infos, err := c.sdk.GetMarginRatioWithContext(ctx, header, codes)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]MarginRatio, 0, len(infos))
-	for _, info := range infos {
-		out = append(out, MarginRatio{
-			Code:            adapt.SecurityToCode(info.GetSecurity()),
-			IsLongPermit:    info.GetIsLongPermit(),
-			IsShortPermit:   info.GetIsShortPermit(),
-			ShortPoolRemain: info.GetShortPoolRemain(),
-			ShortFeeRate:    info.GetShortFeeRate(),
-		})
-	}
-	return out, nil
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) ([]MarginRatio, error) {
+		infos, err := sdk.GetMarginRatioWithContext(ctx, header, codes)
+		if err != nil {
+			return nil, err
+		}
+		out := make([]MarginRatio, 0, len(infos))
+		for _, info := range infos {
+			out = append(out, MarginRatio{
+				Code:            adapt.SecurityToCode(info.GetSecurity()),
+				IsLongPermit:    info.GetIsLongPermit(),
+				IsShortPermit:   info.GetIsShortPermit(),
+				ShortPoolRemain: info.GetShortPoolRemain(),
+				ShortFeeRate:    info.GetShortFeeRate(),
+			})
+		}
+		return out, nil
+	})
 }
 
 // GetCashFlow returns the trading cash flow summary for one account on the
@@ -321,19 +332,21 @@ func (c *Client) GetCashFlow(ctx context.Context, accountID uint64, trdEnv, trdM
 	if err != nil {
 		return nil, err
 	}
-	infos, err := c.sdk.TrdFlowSummaryWithContext(ctx, header, clearingDate)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]CashFlow, 0, len(infos))
-	for _, info := range infos {
-		out = append(out, CashFlow{
-			ClearingDate: info.GetClearingDate(),
-			CashFlowType: info.GetCashFlowType(),
-			Direction:    cashFlowDirectionNames[info.GetCashFlowDirection()],
-			Amount:       info.GetCashFlowAmount(),
-			Remark:       info.GetCashFlowRemark(),
-		})
-	}
-	return out, nil
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) ([]CashFlow, error) {
+		infos, err := sdk.TrdFlowSummaryWithContext(ctx, header, clearingDate)
+		if err != nil {
+			return nil, err
+		}
+		out := make([]CashFlow, 0, len(infos))
+		for _, info := range infos {
+			out = append(out, CashFlow{
+				ClearingDate: info.GetClearingDate(),
+				CashFlowType: info.GetCashFlowType(),
+				Direction:    cashFlowDirectionNames[info.GetCashFlowDirection()],
+				Amount:       info.GetCashFlowAmount(),
+				Remark:       info.GetCashFlowRemark(),
+			})
+		}
+		return out, nil
+	})
 }
