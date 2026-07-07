@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/hyperjiang/futu"
 	"github.com/hyperjiang/futu/adapt"
 )
 
@@ -68,41 +69,45 @@ func (c *Client) GetUserSecurityGroup(ctx context.Context, groupType string) ([]
 		}
 		gt = id
 	}
-	groups, err := c.sdk.GetUserSecurityGroupWithContext(ctx, gt)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]SecurityGroup, 0, len(groups))
-	for _, g := range groups {
-		out = append(out, SecurityGroup{
-			GroupName: g.GetGroupName(),
-			GroupType: groupTypeNames[g.GetGroupType()],
-		})
-	}
-	return out, nil
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) ([]SecurityGroup, error) {
+		groups, err := sdk.GetUserSecurityGroupWithContext(ctx, gt)
+		if err != nil {
+			return nil, err
+		}
+		out := make([]SecurityGroup, 0, len(groups))
+		for _, g := range groups {
+			out = append(out, SecurityGroup{
+				GroupName: g.GetGroupName(),
+				GroupType: groupTypeNames[g.GetGroupType()],
+			})
+		}
+		return out, nil
+	})
 }
 
 // GetUserSecurity returns the securities in one watchlist group. groupName
 // comes from GetUserSecurityGroup.
 func (c *Client) GetUserSecurity(ctx context.Context, groupName string) ([]WatchlistSecurity, error) {
-	infos, err := c.sdk.GetUserSecurityWithContext(ctx, groupName)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]WatchlistSecurity, 0, len(infos))
-	for _, info := range infos {
-		b := info.GetBasic()
-		if b == nil {
-			continue
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) ([]WatchlistSecurity, error) {
+		infos, err := sdk.GetUserSecurityWithContext(ctx, groupName)
+		if err != nil {
+			return nil, err
 		}
-		out = append(out, WatchlistSecurity{
-			Code:      adapt.SecurityToCode(b.GetSecurity()),
-			Name:      b.GetName(),
-			LotSize:   b.GetLotSize(),
-			SecType:   secTypeNames[b.GetSecType()],
-			ListTime:  b.GetListTime(),
-			Delisting: b.GetDelisting(),
-		})
-	}
-	return out, nil
+		out := make([]WatchlistSecurity, 0, len(infos))
+		for _, info := range infos {
+			b := info.GetBasic()
+			if b == nil {
+				continue
+			}
+			out = append(out, WatchlistSecurity{
+				Code:      adapt.SecurityToCode(b.GetSecurity()),
+				Name:      b.GetName(),
+				LotSize:   b.GetLotSize(),
+				SecType:   secTypeNames[b.GetSecType()],
+				ListTime:  b.GetListTime(),
+				Delisting: b.GetDelisting(),
+			})
+		}
+		return out, nil
+	})
 }

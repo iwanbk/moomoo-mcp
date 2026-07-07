@@ -4,6 +4,7 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/hyperjiang/futu"
 	"github.com/hyperjiang/futu/adapt"
 	"github.com/hyperjiang/futu/pb/trdcommon"
 	"google.golang.org/protobuf/proto"
@@ -131,15 +132,17 @@ func (c *Client) GetOrders(ctx context.Context, accountID uint64, trdEnv, trdMar
 	if err != nil {
 		return nil, err
 	}
-	orders, err := c.sdk.GetOpenOrderListWithContext(ctx, header)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]Order, 0, len(orders))
-	for _, o := range orders {
-		out = append(out, toOrder(o))
-	}
-	return out, nil
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) ([]Order, error) {
+		orders, err := sdk.GetOpenOrderListWithContext(ctx, header)
+		if err != nil {
+			return nil, err
+		}
+		out := make([]Order, 0, len(orders))
+		for _, o := range orders {
+			out = append(out, toOrder(o))
+		}
+		return out, nil
+	})
 }
 
 // GetDeals returns today's filled deals (order fills) for one account.
@@ -148,15 +151,17 @@ func (c *Client) GetDeals(ctx context.Context, accountID uint64, trdEnv, trdMark
 	if err != nil {
 		return nil, err
 	}
-	fills, err := c.sdk.GetOrderFillListWithContext(ctx, header)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]Deal, 0, len(fills))
-	for _, f := range fills {
-		out = append(out, toDeal(f))
-	}
-	return out, nil
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) ([]Deal, error) {
+		fills, err := sdk.GetOrderFillListWithContext(ctx, header)
+		if err != nil {
+			return nil, err
+		}
+		out := make([]Deal, 0, len(fills))
+		for _, f := range fills {
+			out = append(out, toDeal(f))
+		}
+		return out, nil
+	})
 }
 
 // GetHistoryOrders returns historical orders for one account within
@@ -172,15 +177,17 @@ func (c *Client) GetHistoryOrders(ctx context.Context, accountID uint64, trdEnv,
 		EndTime:   proto.String(endTime),
 		CodeList:  codes,
 	}
-	orders, err := c.sdk.GetHistoryOrderListWithContext(ctx, header, fc)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]Order, 0, len(orders))
-	for _, o := range orders {
-		out = append(out, toOrder(o))
-	}
-	return out, nil
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) ([]Order, error) {
+		orders, err := sdk.GetHistoryOrderListWithContext(ctx, header, fc)
+		if err != nil {
+			return nil, err
+		}
+		out := make([]Order, 0, len(orders))
+		for _, o := range orders {
+			out = append(out, toOrder(o))
+		}
+		return out, nil
+	})
 }
 
 // GetHistoryDeals returns historical filled deals for one account within
@@ -196,13 +203,15 @@ func (c *Client) GetHistoryDeals(ctx context.Context, accountID uint64, trdEnv, 
 		EndTime:   proto.String(endTime),
 		CodeList:  codes,
 	}
-	fills, err := c.sdk.GetHistoryOrderFillListWithContext(ctx, header, fc)
-	if err != nil {
-		return nil, err
-	}
-	out := make([]Deal, 0, len(fills))
-	for _, f := range fills {
-		out = append(out, toDeal(f))
-	}
-	return out, nil
+	return call(c, ctx, func(ctx context.Context, sdk *futu.SDK) ([]Deal, error) {
+		fills, err := sdk.GetHistoryOrderFillListWithContext(ctx, header, fc)
+		if err != nil {
+			return nil, err
+		}
+		out := make([]Deal, 0, len(fills))
+		for _, f := range fills {
+			out = append(out, toDeal(f))
+		}
+		return out, nil
+	})
 }

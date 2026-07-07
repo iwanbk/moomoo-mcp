@@ -16,9 +16,12 @@ func main() {
 
 	ctx := context.Background()
 
+	// New does not fail on connectivity: OpenD may not be up yet. The client
+	// connects lazily and reconnects automatically after a drop, so the MCP
+	// server stays alive across OpenD restarts. check_health reports status.
 	client, err := moomoo.New(cfg.OpendHost, cfg.OpendPort, cfg.SimulateOnly, cfg.DisableRounding)
 	if err != nil {
-		log.Fatalf("connect to OpenD at %s:%d: %v", cfg.OpendHost, cfg.OpendPort, err)
+		log.Fatalf("init moomoo client: %v", err)
 	}
 	defer client.Close()
 
